@@ -28,27 +28,26 @@ class Joystick{
 
 class Controller{
     private:
-        Joystick joy1, joy2;
-        ezButton butA, butB, butX, butY;
+        Joystick joy1;
+        ezButton butA, butB, butX, butY, butR, butL, butSwitch;
     
     public:
         Controller(); // default constructor
-        Controller(int j1x, int j1y, int j1z, int j2x, int j2y, int j2z, int butAPin, int butBPin, int butXPin, int butYPin);
+        Controller(int j1x, int j1y, int j1z, int butAPin, int butBPin, int butXPin, int butYPin, int butRPin, int butLPin, int butSPin);
         ~Controller();
 
         float getJoy1X(float deadzone = 0);
         float getJoy1Y(float deadzone = 0);
 
-        float getJoy2X(float deadzone = 0);
-        float getJoy2Y(float deadzone = 0);
-
         bool getJoy1Z();
-        bool getJoy2Z();
 
         bool getA();
         bool getB();
         bool getX();
         bool getY();
+        bool getR();
+        bool getL();
+        bool getS();
 
         void controllerUpdate();
 

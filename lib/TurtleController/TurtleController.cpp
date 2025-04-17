@@ -57,7 +57,7 @@ float Joystick::getY(float deadzone = 0){
 }
 
 bool Joystick::getZ(){
-    return zButton.isPressed(); 
+    return !zButton.getState(); 
 }
 
 
@@ -80,13 +80,13 @@ void Joystick::setup(){
 
 // controller methods
 
-Controller::Controller(): joy1(Joystick()), joy2(Joystick()), butA(ezButton(0)), butB(ezButton(0)), butX(ezButton(0)), butY(ezButton(0)){
+Controller::Controller(): joy1(Joystick()), butA(ezButton(0)), butB(ezButton(0)), butX(ezButton(0)), butY(ezButton(0)), butR(ezButton(0)), butL(ezButton(0)), butSwitch((0)){
     setup();
 }
 
-Controller::Controller(int j1x, int j1y, int j1z, int j2x, int j2y, int j2z, int butAPin, int butBPin, int butXPin, int butYPin):
-joy1(Joystick(j1x, j1y, j1z)), joy2(Joystick(j2x, j2y, j2z)), butA(ezButton(butAPin)),
-butB(ezButton(butBPin)), butX(ezButton(butXPin)), butY(ezButton(butYPin)){
+Controller::Controller(int j1x, int j1y, int j1z, int butAPin, int butBPin, int butXPin, int butYPin, int butRPin, int butLPin, int butSPin):
+joy1(Joystick(j1x, j1y, j1z)), butA(ezButton(butAPin)),
+butB(ezButton(butBPin)), butX(ezButton(butXPin)), butY(ezButton(butYPin)), butR(ezButton(butRPin)), butL(ezButton(butLPin)), butSwitch(ezButton(butSPin)){
     setup();
 }
 
@@ -106,36 +106,31 @@ bool Controller::getJoy1Z(){
     return joy1.getZ();
 }
 
-// joy 2
-
-float Controller::getJoy2X(float deadzone ){
-    return joy2.getX(deadzone);
-}
-
-float Controller::getJoy2Y(float deadzone ){
-    return joy2.getY(deadzone);
-}
-
-bool Controller::getJoy2Z(){
-    return joy2.getZ();
-}
-
 // buttons
 
 bool Controller::getA(){
-    return butA.isPressed();
+    return !butA.getState();
 }
 
 bool Controller::getB(){
-    return butB.isPressed();
+    return !butB.getState();
 }
 
 bool Controller::getX(){
-    return butX.isPressed();
+    return !butX.getState();
 }
 
 bool Controller::getY(){
-    return butY.isPressed();
+    return !butY.getState();
+}
+bool Controller::getR(){
+    return !butR.getState();
+}
+bool Controller::getL(){
+    return !butL.getState();
+}
+bool Controller::getS(){
+    return !butSwitch.getState();
 }
 
 
@@ -146,9 +141,11 @@ void Controller::controllerUpdate(){
     butB.loop();
     butX.loop();
     butY.loop();
+    butL.loop();
+    butR.loop();
+    butSwitch.loop();
 
     joy1.joystickUpdate();
-    joy2.joystickUpdate();
 }
 
 
@@ -159,10 +156,17 @@ void Controller::setup(){
     butB.setDebounceTime(50);
     butX.setDebounceTime(50);
     butY.setDebounceTime(50);
+    butR.setDebounceTime(50);
+    butL.setDebounceTime(50);
+    butSwitch.setDebounceTime(50);
 
     butA.loop();
     butB.loop();
     butX.loop();
     butY.loop();
+    butR.loop();
+    butL.loop();
+    butSwitch.loop();
+    
 }
 
