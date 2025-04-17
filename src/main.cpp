@@ -13,30 +13,30 @@ const int SCREEN_WIDTH = 128;
 const int SCREEN_LENGTH = 64;
 const int OLED_RESET = -1; // change this if the oled has a reset pin
 
-const int j1x = 34;
-const int j1y = 35;
-const int j1z = 33;
+const int joy_x_pin = 34;
+const int joy_y_pin = 35;
+const int joy_z_pin = 33;
 
-const int butAPin = 32;
-const int butBPin = 33;
-const int butXPin = 33;
-const int butYPin = 33;
-const int butRPin = 33;
-const int butLPin = 33;
-const int butSPin = 5;
+const int but_a_pin = 32;
+const int but_b_pin = 33;
+const int but_x_pin = 33;
+const int but_y_pin = 33;
+const int but_r_pin = 33;
+const int but_l_pin = 33;
+const int but_s_pin = 5;
 
-const int pollRate = 64;
+const int poll_rate = 64;
 const float deadzone = 0.1;
 
 const int LOGO_START_X = 96;
 const int LOGO_START_Y = 32;
 
-// various bits of data
-uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+// various constant data the controller uses
+const uint8_t broadcast_address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-const int addressCount = 15;
+const int address_count = 15;
 
-const char* teamNames[addressCount] PROGMEM = {
+const char* team_names[address_count] PROGMEM = {
   "the grippaz",  // 1
   "team 27#",  // 2
   "Team 3",  // 3
@@ -54,7 +54,7 @@ const char* teamNames[addressCount] PROGMEM = {
   "Team 15"  // 15
 };
 
-const uint8_t addressList[addressCount][6] PROGMEM = {
+const uint8_t address_list[address_count][6] PROGMEM = {
   {0x08, 0xb6, 0x1f, 0xb8, 0x62, 0xc8}, // 1
   {0xc8, 0x2e, 0x18, 0xf2, 0x33, 0xec}, // 2
   {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, // 3
@@ -103,10 +103,11 @@ typedef struct struct_message {
 } struct_message;
 
 // ESP-now stuff
-esp_now_peer_info_t peerInfo[addressCount];
+esp_now_peer_info_t peerInfo[address_count];
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) { // callback function when data sent
-  //Serial.print("\r\nLast Packet Send Status:\t");
-  //Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+  /*Serial.print("\r\nLast Packet Send Status:\t");
+  Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+  */ // uncomment this if want debug message spam
 }
 
 // Create a struct_message called myData
@@ -116,10 +117,11 @@ struct_message myData;
 Controller controller;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_LENGTH, &Wire, OLED_RESET);
 
+// function declarations
 void readMacAddress();
 void updateData();
 
-int addressIndex = 0;
+int address_index = 0;
 void setup() {
   Serial.begin(115200);
  
@@ -140,9 +142,9 @@ void setup() {
   // get the status of Trasnmitted packet
   esp_now_register_send_cb(OnDataSent);
   
-  // Register peer
-  for(int i = 0; i < addressCount; ++i){
-    memcpy(peerInfo[i].peer_addr, addressList[i], 6); // copy broadcastaddress to peerInfo address
+  // Register peers
+  for(int i = 0; i < address_count; ++i){
+    memcpy(peerInfo[i].peer_addr, address_list[i], 6); // copy address from list to peerInfo address
     peerInfo[i].channel = 0;  
     peerInfo[i].encrypt = false;
     
@@ -157,7 +159,7 @@ void setup() {
   // controller setup
   delay(1000);
   
-  controller = Controller(j1x, j1y, j1z, butAPin, butBPin, butXPin, butYPin, butRPin, butLPin, butSPin);
+  controller = Controller(joy_x_pin, joy_y_pin, joy_z_pin, but_a_pin, but_b_pin, but_x_pin, but_y_pin, but_r_pin, but_l_pin, but_s_pin);
  
   // OLED setup
 
@@ -178,9 +180,9 @@ void setup() {
   display.setTextWrap(true);
   // initial print to display
   display.setCursor(0, 0);     // Start at top-left corner
-  display.printf("Team %d", addressIndex+1);
+  display.printf("Team %d", address_index+1);
   display.println();
-  display.printf(teamNames[addressIndex]);
+  display.printf(team_names[address_index]);
   display.drawBitmap(LOGO_START_X, LOGO_START_Y, turtle_logo, LOGO_WIDTH, LOGO_HEIGHT, 1); // draw sick af turtle logo
   display.display();
 
@@ -199,17 +201,17 @@ void loop() {
   
   // switch target devices if button gets pressed
   if(lastSwitchButtonState == false && controller.getS() == true){
-    addressIndex = (addressIndex + 1) % addressCount;
+    address_index = (address_index + 1) % address_count;
     
-    /*Serial.printf("Team %d", addressIndex+1);
+    /*Serial.printf("Team %d", address_index+1);
     Serial.println();
-    Serial.printf(teamNames[addressIndex]);*/
+    Serial.printf(team_names[address_index]);*/ // uncomment if want debug message
 
     display.clearDisplay();  // display new team info
     display.setCursor(0,0);
-    display.printf("Team %d", addressIndex+1  );
+    display.printf("Team %d", address_index+1  );
     display.println();
-    display.printf(teamNames[addressIndex]);
+    display.printf(team_names[address_index]);
     display.drawBitmap(LOGO_START_X, LOGO_START_Y, turtle_logo, LOGO_WIDTH, LOGO_HEIGHT, 1); // draw sick af turtle logo
     display.display();
   }
@@ -217,13 +219,13 @@ void loop() {
   
 
   // fire in the hole
-  esp_err_t result = esp_now_send(addressList[addressIndex], (uint8_t *) &myData, sizeof(myData));
+  esp_err_t result = esp_now_send(address_list[address_index], (uint8_t *) &myData, sizeof(myData));
   /*if (result == ESP_OK) {
     Serial.println("Sent with success");
   }
   else {
     Serial.println("Error sending the data");
-  }*/
+  }*/ // uncomment if want debug messages
 
   // update last switch button state
   if(controller.getS() == true){
@@ -232,7 +234,7 @@ void loop() {
   else{
     lastSwitchButtonState = false;
   }
-  delay((1.0f/pollRate) * 1000); // delay according to polling rate
+  delay((1.0f/poll_rate) * 1000); // delay according to polling rate
 
   
 }
@@ -262,6 +264,6 @@ void updateData(){
   myData.butL = controller.getL();
   /*Serial.printf("joy1: %.2f %.2f %d  buttons: %d %d %d %d %d %d\n", myData.j1x, myData.j1y,
     myData.j1z, myData.butA, myData.butB,
-    myData.butX, myData.butY, myData.butR, myData.butL);*/
+    myData.butX, myData.butY, myData.butR, myData.butL);*/ // uncomment if want debug messages
 
 }
