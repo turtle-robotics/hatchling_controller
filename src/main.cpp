@@ -102,6 +102,31 @@ typedef struct struct_message {
   bool butL;
 } struct_message;
 
+// enum to track state declaration and increment operator
+#pragma region state_enum_stuff
+// Controller State enum
+enum State{
+  SEND_MODE,
+  DEBUG_MODE
+};
+State& operator++(State& currentState){
+  switch(currentState) {
+    case SEND_MODE : return currentState = DEBUG_MODE;
+    case DEBUG_MODE : return currentState = SEND_MODE;
+  }
+  assert(false); // this should be unreachable, but if by some "miracle" the code makes it here it'll throw an error
+  return currentState; // this is just to prevent the compiler for yelling at you
+
+}
+
+State operator++(State& currentState, int)
+{
+  State tmp(currentState);
+  ++currentState;
+  return tmp;
+}
+#pragma endregion state_enum_stuff
+
 // ESP-now stuff
 esp_now_peer_info_t peerInfo[address_count];
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) { // callback function when data sent
@@ -110,8 +135,8 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) { // call
   */ // uncomment this if want debug message spam
 }
 
-// Create a struct_message called myData
-struct_message myData;
+// Create a struct_message called controllerData
+struct_message controllerData;
 
 // Create objects for controller and display
 Controller controller;
@@ -120,17 +145,22 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_LENGTH, &Wire, OLED_RESET);
 // function declarations
 void readMacAddress();
 void updateData();
+void drawTeamName();
+void drawTurtleLogo();
+void sendingModeOperations();
+void debugModeOperations();
 
-int address_index = 0;
+// runtime variables
+int currentAddressIndex = 0;
+bool lastSwitchButtonState = false;
+enum State currentState = SEND_MODE;
+
 void setup() {
   Serial.begin(115200);
- 
-
   WiFi.mode(WIFI_STA);
   WiFi.begin();
 
   // esp now setup
-  
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
     while(true){
@@ -158,7 +188,6 @@ void setup() {
 
   // controller setup
   delay(1000);
-  
   controller = Controller(joy_x_pin, joy_y_pin, joy_z_pin, but_a_pin, but_b_pin, but_x_pin, but_y_pin, but_r_pin, but_l_pin, but_s_pin);
  
   // OLED setup
@@ -174,61 +203,47 @@ void setup() {
   // use oled time
   display.clearDisplay();
   // display configs
-  display.setTextSize(2);      // Normal 1:1 pixel scale
+  display.setTextSize(2);      // 2x size of normal font
   display.setTextColor(WHITE); // Draw white text
   display.cp437(true);         // Use full 256 char 'Code Page 437' font
   display.setTextWrap(true);
+  
   // initial print to display
-  display.setCursor(0, 0);     // Start at top-left corner
-  display.printf("Team %d", address_index+1);
-  display.println();
-  display.printf(team_names[address_index]);
-  display.drawBitmap(LOGO_START_X, LOGO_START_Y, turtle_logo, LOGO_WIDTH, LOGO_HEIGHT, 1); // draw sick af turtle logo
+  drawTeamName();
+  drawTurtleLogo();
   display.display();
 
 }
 
 
-bool lastSwitchButtonState = false;
+
+bool switchButtonPressed = false; // just so that we dont have to do controller.getS() a million times since that might reread the voltage every time, don't know honestly
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  
+  // loop code for stuff like button debouncing
   controller.controllerUpdate();
-
-  // get all the controller data loaded
+  // get all the updated controller data loaded
   updateData();
+  switchButtonPressed = controller.getS();
   
-  // switch target devices if button gets pressed
-  if(lastSwitchButtonState == false && controller.getS() == true){
-    address_index = (address_index + 1) % address_count;
-    
-    /*Serial.printf("Team %d", address_index+1);
-    Serial.println();
-    Serial.printf(team_names[address_index]);*/ // uncomment if want debug message
-
-    display.clearDisplay();  // display new team info
-    display.setCursor(0,0);
-    display.printf("Team %d", address_index+1  );
-    display.println();
-    display.printf(team_names[address_index]);
-    display.drawBitmap(LOGO_START_X, LOGO_START_Y, turtle_logo, LOGO_WIDTH, LOGO_HEIGHT, 1); // draw sick af turtle logo
-    display.display();
+  // switch device state if switch button gets pressed
+  if(lastSwitchButtonState == false && switchButtonPressed == true){ // this is so we only switch once per button press
+    // swap states
+    ++currentState;
   }
-
+  
+  switch (currentState) // choose what to do based on current state
+  {
+  case SEND_MODE: sendingModeOperations(); break;
+  case DEBUG_MODE: debugModeOperations(); break;
+  default: break; // do nothing, this should be impossible to ever happen tho
+  }
   
 
-  // fire in the hole
-  esp_err_t result = esp_now_send(address_list[address_index], (uint8_t *) &myData, sizeof(myData));
-  /*if (result == ESP_OK) {
-    Serial.println("Sent with success");
-  }
-  else {
-    Serial.println("Error sending the data");
-  }*/ // uncomment if want debug messages
+  
 
   // update last switch button state
-  if(controller.getS() == true){
+  if(switchButtonPressed == true){
     lastSwitchButtonState = true;
   }
   else{
@@ -252,18 +267,52 @@ void readMacAddress(){
 }
 
 void updateData(){
-  myData.j1x = controller.getJoy1X(deadzone);
-  myData.j1y = controller.getJoy1Y(deadzone);
-  myData.j1z = controller.getJoy1Z();
+  controllerData.j1x = controller.getJoy1X(deadzone);
+  controllerData.j1y = controller.getJoy1Y(deadzone);
+  controllerData.j1z = controller.getJoy1Z();
 
-  myData.butA = controller.getA();
-  myData.butB = controller.getB();
-  myData.butX = controller.getX();
-  myData.butY = controller.getY();
-  myData.butR = controller.getR();
-  myData.butL = controller.getL();
-  /*Serial.printf("joy1: %.2f %.2f %d  buttons: %d %d %d %d %d %d\n", myData.j1x, myData.j1y,
-    myData.j1z, myData.butA, myData.butB,
-    myData.butX, myData.butY, myData.butR, myData.butL);*/ // uncomment if want debug messages
+  controllerData.butA = controller.getA();
+  controllerData.butB = controller.getB();
+  controllerData.butX = controller.getX();
+  controllerData.butY = controller.getY();
+  controllerData.butR = controller.getR();
+  controllerData.butL = controller.getL();
+  /*Serial.printf("joy1: %.2f %.2f %d  buttons: %d %d %d %d %d %d\n", controllerData.j1x, controllerData.j1y,
+    controllerData.j1z, controllerData.butA, controllerData.butB,
+    controllerData.butX, controllerData.butY, controllerData.butR, controllerData.butL);*/ // uncomment if want debug messages
 
+}
+
+void drawTeamName(){
+  display.setCursor(0,0);
+  display.printf("#%d: %s", currentAddressIndex+1, team_names[currentAddressIndex]);
+}
+
+void drawTurtleLogo(){
+  display.drawBitmap(LOGO_START_X, LOGO_START_Y, turtle_logo, LOGO_WIDTH, LOGO_HEIGHT, 1); // draw sick af turtle logo
+}
+
+void sendingModeOperations(){
+
+  if(lastSwitchButtonState == false && switchButtonPressed == true){ // if just swapped to sending mode
+    display.clearDisplay();  // display new team info
+    drawTeamName();
+    drawTurtleLogo();
+    display.display();
+  }
+
+  // fire in the hole
+  esp_err_t result = esp_now_send(address_list[currentAddressIndex], (uint8_t *) &controllerData, sizeof(controllerData));
+
+
+  /*if (result == ESP_OK) {
+    Serial.println("Sent with success");
+  }
+  else {
+    Serial.println("Error sending the data");
+  }*/ // uncomment if want debug messages
+}
+
+void debugModeOperations(){
+  /* TODO */
 }
