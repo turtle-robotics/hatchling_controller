@@ -26,7 +26,7 @@ const int but_l_pin = 18;
 const int but_s_pin = 5;
 
 const int poll_rate = 64;
-const float deadzone = 0.3;
+const float deadzone = 0.17;
 
 const int LOGO_START_X = 96;
 const int LOGO_START_Y = 32;
@@ -34,20 +34,22 @@ const int LOGO_START_Y = 32;
 // various constant data the controller uses
 const uint8_t broadcast_address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-const int address_count = 4;
+const int address_count = 5;
 
 const char* team_names[address_count] PROGMEM = {
   "the grippaz",  // 1
   "team 27#",  // 2
   "Team Amazing",  // 3
   "Mort",  // 4
+  "boooo" // 5
 };
 
 const uint8_t address_list[address_count][6] PROGMEM = {
   {0x08, 0xb6, 0x1f, 0xb8, 0x62, 0xc8}, // 1
   {0xc8, 0x2e, 0x18, 0xf2, 0x33, 0xec}, // 2
   {0x08, 0xb6, 0x1f, 0xb8, 0x04, 0x7c}, // 3
-  {0x08, 0xb6, 0x1f, 0xb6, 0x07, 0x34}, // 4 
+  {0x08, 0xb6, 0x1f, 0xb6, 0x07, 0x34}, // 4
+  {0xc8, 0x2e, 0x18, 0xf2, 0x34, 0x68} // 5 
 };
 
 const int LOGO_WIDTH = 32;
