@@ -136,7 +136,10 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) { // call
 }
 
 // Create a struct_message called controllerData
-struct_message controllerData;
+struct_message controllerData = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+// create an object to store last cycle's controllerData so we can see button pulses
+struct_message lastControllerData = {0, 0, 0, 0, 0, 0, 0, 0, 0};;
 
 // Create objects for controller and display
 Controller controller;
@@ -149,11 +152,15 @@ void drawTeamName();
 void drawTurtleLogo();
 void sendingModeOperations();
 void debugModeOperations();
+// function to only return true on rising edge
+bool getButtonRisingEdge(bool currentVal, bool oldVal);
 
 // runtime variables
 int currentAddressIndex = 0;
 bool lastSwitchButtonState = false;
 enum State currentState = SEND_MODE;
+bool flipX = false;
+bool flipY = true;
 
 void setup() {
   Serial.begin(115200);
@@ -227,9 +234,8 @@ void loop() {
   switchButtonPressed = controller.getS();
   
   // switch device state if switch button gets pressed
-  if(lastSwitchButtonState == false && switchButtonPressed == true){ // this is so we only switch once per button press
-    // swap states
-    ++currentState;
+  if(getButtonRisingEdge(switchButtonPressed, lastSwitchButtonState)){ // this is so we only switch once per button press
+    ++currentState; // swap states
   }
   
   switch (currentState) // choose what to do based on current state
@@ -242,16 +248,13 @@ void loop() {
 
   
 
-  // update last switch button state
-  if(switchButtonPressed == true){
-    lastSwitchButtonState = true;
-  }
-  else{
-    lastSwitchButtonState = false;
-  }
-  delay((1.0f/poll_rate) * 1000); // delay according to polling rate
+  // update last button states
+  lastControllerData = controllerData;
+  lastSwitchButtonState = switchButtonPressed;
 
-  
+  // delay according to polling rate
+  delay((1.0f/poll_rate) * 1000);
+
 }
 
 void readMacAddress(){
@@ -267,8 +270,8 @@ void readMacAddress(){
 }
 
 void updateData(){
-  controllerData.j1x = controller.getJoy1X(deadzone);
-  controllerData.j1y = controller.getJoy1Y(deadzone);
+  controllerData.j1x = controller.getJoy1X(deadzone) * ((flipX) ? -1 : 1); // flip x axis if flipX is true
+  controllerData.j1y = controller.getJoy1Y(deadzone) * ((flipY) ? -1 : 1); // flip y axis if flipY is true
   controllerData.j1z = controller.getJoy1Z();
 
   controllerData.butA = controller.getA();
@@ -277,9 +280,9 @@ void updateData(){
   controllerData.butY = controller.getY();
   controllerData.butR = controller.getR();
   controllerData.butL = controller.getL();
-  /*Serial.printf("joy1: %.2f %.2f %d  buttons: %d %d %d %d %d %d\n", controllerData.j1x, controllerData.j1y,
+  Serial.printf("joy1: %.2f %.2f %d  buttons: %d %d %d %d %d %d\n", controllerData.j1x, controllerData.j1y,
     controllerData.j1z, controllerData.butA, controllerData.butB,
-    controllerData.butX, controllerData.butY, controllerData.butR, controllerData.butL);*/ // uncomment if want debug messages
+    controllerData.butX, controllerData.butY, controllerData.butR, controllerData.butL); // uncomment if want debug messages
 
 }
 
@@ -294,7 +297,7 @@ void drawTurtleLogo(){
 
 void sendingModeOperations(){
 
-  if(lastSwitchButtonState == false && switchButtonPressed == true){ // if just swapped to sending mode
+  if(getButtonRisingEdge(switchButtonPressed, lastSwitchButtonState)){ // if just swapped to sending mode
     display.clearDisplay();  // display new team info
     drawTeamName();
     drawTurtleLogo();
@@ -314,5 +317,27 @@ void sendingModeOperations(){
 }
 
 void debugModeOperations(){
-  /* TODO */
+  display.clearDisplay();
+  drawTeamName();
+  drawTurtleLogo();
+  display.setCursor(0, 48);
+  display.printf("DEBUG");
+  display.display();
+
+  if(getButtonRisingEdge(controllerData.butA, lastControllerData.butA)){ // switch team when press A
+    currentAddressIndex = (currentAddressIndex + 1) % address_count;
+  }
+  
+  if(getButtonRisingEdge(controllerData.butX, lastControllerData.butX)){ // flip joystick x axis when press X
+    flipX = !flipX;
+  }
+
+  if(getButtonRisingEdge(controllerData.butY, lastControllerData.butY)){ // flip joystick y axis when press Y
+    flipY = !flipY;
+  }
+
+}
+
+bool getButtonRisingEdge(bool currentVal, bool oldVal){
+  return currentVal && !oldVal; // return true only on rising edge of signal
 }
