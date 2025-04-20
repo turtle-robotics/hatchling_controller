@@ -268,7 +268,7 @@ void updateData(){
 
 void drawTeamName(){
   display.setCursor(0,0);
-  display.printf("#%d: %s", currentAddressIndex+1, team_names[currentAddressIndex]);
+  display.printf("#%d:%s", currentAddressIndex+1, team_names[currentAddressIndex]);
 }
 
 void drawTurtleLogo(){
@@ -297,15 +297,19 @@ void sendingModeOperations(){
 }
 
 void debugModeOperations(){
-  display.clearDisplay();
-  drawTeamName();
-  drawTurtleLogo();
-  display.setCursor(0, 48);
-  display.printf("DEBUG");
-  display.display();
+  if(getButtonRisingEdge(switchButtonPressed, lastSwitchButtonState)){
+    display.clearDisplay();
+    drawTeamName();
+    drawTurtleLogo();
+    display.setCursor(0, 48);
+    display.printf("DEBUG");
+    display.display();
+  }
+  bool update = false; // track if update happened
 
   if(getButtonRisingEdge(controllerData.butA, lastControllerData.butA)){ // switch team when press A
     currentAddressIndex = (currentAddressIndex + 1) % address_count;
+    update = true;
   }
   
   if(getButtonRisingEdge(controllerData.butX, lastControllerData.butX)){ // flip joystick x axis when press X
@@ -316,6 +320,14 @@ void debugModeOperations(){
     flipY = !flipY;
   }
 
+  if(update){
+    display.clearDisplay();
+    drawTeamName();
+    drawTurtleLogo();
+    display.setCursor(0, 48);
+    display.printf("DEBUG");
+    display.display();
+  }
 }
 
 bool getButtonRisingEdge(bool currentVal, bool oldVal){
