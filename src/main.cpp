@@ -14,19 +14,19 @@ const int SCREEN_LENGTH = 64;
 const int OLED_RESET = -1; // change this if the oled has a reset pin
 
 const int joy_x_pin = 34;
-const int joy_y_pin = 35;
+const int joy_y_pin = 32;
 const int joy_z_pin = 33;
 
-const int but_a_pin = 32;
-const int but_b_pin = 33;
-const int but_x_pin = 33;
-const int but_y_pin = 33;
-const int but_r_pin = 33;
-const int but_l_pin = 33;
+const int but_a_pin = 13;
+const int but_b_pin = 12;
+const int but_x_pin = 14;
+const int but_y_pin = 27;
+const int but_r_pin = 19;
+const int but_l_pin = 18;
 const int but_s_pin = 5;
 
 const int poll_rate = 64;
-const float deadzone = 0.1;
+const float deadzone = 0.3;
 
 const int LOGO_START_X = 96;
 const int LOGO_START_Y = 32;
@@ -262,8 +262,8 @@ void updateData(){
   myData.butY = controller.getY();
   myData.butR = controller.getR();
   myData.butL = controller.getL();
-  /*Serial.printf("joy1: %.2f %.2f %d  buttons: %d %d %d %d %d %d\n", myData.j1x, myData.j1y,
+  Serial.printf("joy1: %.2f %.2f %d  buttons: %d %d %d %d %d %d\n", myData.j1x, myData.j1y,
     myData.j1z, myData.butA, myData.butB,
-    myData.butX, myData.butY, myData.butR, myData.butL);*/ // uncomment if want debug messages
+    myData.butX, myData.butY, myData.butR, myData.butL); // uncomment if want debug messages
 
 }
