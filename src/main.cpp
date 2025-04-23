@@ -322,8 +322,11 @@ void drawJoystickState(u_int startX, u_int startY){
   u_int yCoord = CENTER_Y + controllerData.j1y * maxDist;
 
   // draw
-  display.drawCircle(CENTER_X + lastControllerData.j1x * maxDist, CENTER_Y + lastControllerData.j1y * maxDist, circleSize, BLACK); // wipe last
-  display.drawCircle(xCoord, yCoord, 2, WHITE);
+  display.fillCircle(CENTER_X + lastControllerData.j1x * maxDist, CENTER_Y + lastControllerData.j1y * maxDist, circleSize, BLACK); // wipe last
+  if(controllerData.j1z)
+    display.fillCircle(xCoord, yCoord, 2, WHITE);
+  else
+    display.drawCircle(xCoord, yCoord, 2, WHITE);
 
 }
 
