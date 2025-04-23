@@ -125,21 +125,31 @@ struct_message lastControllerData = {0, 0, 0, 0, 0, 0, 0, 0, 0};;
 Controller controller;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_LENGTH, &Wire, OLED_RESET);
 
+#pragma region function_declarations
 // function declarations
 void readMacAddress();
 void updateData();
+
+void drawDefaults(); // just has the following functions in 1
 void drawTeamName();
 void drawTurtleLogo();
+void drawControllerBorders();
+
+void drawControllerState(u_int startX = 30, u_int startY = 32);
+void drawJoystickState(u_int startX, u_int startY);
+void drawButtonState(u_int startX, u_int startY);
+
 void sendingModeOperations();
 void debugModeOperations();
 // function to only return true on rising edge
 bool getButtonRisingEdge(bool currentVal, bool oldVal);
+#pragma endregion function_declarations
 
 // runtime variables
 int currentAddressIndex = 0;
 bool lastSwitchButtonState = false;
 enum State currentState = SEND_MODE;
-bool flipX = false;
+bool flipX = true;
 bool flipY = true;
 
 void setup() {
@@ -196,8 +206,8 @@ void setup() {
   display.setTextWrap(true);
   
   // initial print to display
-  drawTeamName();
-  drawTurtleLogo();
+  drawDefaults();
+  drawControllerState();
   display.display();
 
 }
@@ -266,6 +276,14 @@ void updateData(){
 
 }
 
+#pragma region drawing_functions
+
+void drawDefaults(){
+  drawTeamName();
+  drawTurtleLogo();
+  drawControllerBorders();
+}
+
 void drawTeamName(){
   display.setCursor(0,0);
   display.printf("#%d:%s", currentAddressIndex+1, team_names[currentAddressIndex]);
@@ -275,14 +293,141 @@ void drawTurtleLogo(){
   display.drawBitmap(LOGO_START_X, LOGO_START_Y, turtle_logo, LOGO_WIDTH, LOGO_HEIGHT, 1); // draw sick af turtle logo
 }
 
+void drawControllerState(u_int startX, u_int startY){
+  drawJoystickState(startX, startY);
+  drawButtonState(startX + 31, startY);
+  drawControllerBorders();
+}
+
+void drawJoystickState(u_int startX, u_int startY){
+  // draw joystick state
+
+  // some settings
+  const u_int regionSize = 31;
+  const u_int circleSize = 2;
+  // used later
+  const u_int maxDist = ((regionSize - 4)/2) - circleSize; // the minus 4 is for a nice 2 pixel border around the region just for spacing
+
+  // calculate coordinates
+  u_int CENTER_X = startX + regionSize/2;
+  u_int CENTER_Y = startY + regionSize/2;
+
+  u_int xCoord = CENTER_X + controllerData.j1x * maxDist;
+  u_int yCoord = CENTER_Y + controllerData.j1y * maxDist;
+
+  // draw
+  display.drawCircle(CENTER_X + lastControllerData.j1x * maxDist, CENTER_Y + lastControllerData.j1y * maxDist, circleSize, BLACK); // wipe last
+  display.drawCircle(xCoord, yCoord, 2, WHITE);
+
+}
+
+void drawButtonState(u_int startX, u_int startY){
+  // some settings
+  const u_int regionXSize = 35;
+  const u_int regionYSize = 32;
+  
+  const u_int buttonRadius = 2;
+
+  // calculate coordinates
+  u_int centerX = startX + regionXSize/2;
+  u_int centerY = startY + regionYSize/2 - regionYSize/13;
+
+    // L button
+    u_int LButtonStartX = centerX - regionXSize/5 - 3;
+    u_int LButtonStartY = centerY - regionYSize/5 - 2;
+
+    // R button
+    u_int RButtonStartX = centerX + regionXSize/5 - 3;
+    u_int RButtonStartY = centerY - regionYSize/5 - 2;
+
+    // A button
+    u_int AButtonStartX = centerX;
+    u_int AButtonStartY = centerY + regionXSize/17 + regionYSize/3;
+
+    // B button
+    u_int BButtonStartX = centerX + regionXSize/4;
+    u_int BButtonStartY = centerY + (regionXSize/17 + regionYSize/3)/2 + 1;
+
+    // X button
+    u_int XButtonStartX = centerX - regionXSize/4;
+    u_int XButtonStartY = centerY + (regionXSize/17 + regionYSize/3)/2 + 1;
+
+    // Y button
+    u_int YButtonStartX = centerX;
+    u_int YButtonStartY = centerY + regionXSize/17;
+  
+  // draw L button
+  if(controllerData.butL){
+    display.fillRoundRect(LButtonStartX, LButtonStartY, 6, 4, 2, WHITE);
+  }
+  else{
+    display.fillRoundRect(LButtonStartX, LButtonStartY, 6, 4, 2, BLACK);
+    display.drawRoundRect(LButtonStartX, LButtonStartY, 6, 4, 2, WHITE);
+  }
+
+  // draw R button
+  if(controllerData.butR){
+    display.fillRoundRect(RButtonStartX, RButtonStartY, 6, 4, 2, WHITE);
+  }
+  else{
+    display.fillRoundRect(RButtonStartX, RButtonStartY, 6, 4, 2, BLACK);
+    display.drawRoundRect(RButtonStartX, RButtonStartY, 6, 4, 2, WHITE);
+  }
+
+  // draw A button
+  if(controllerData.butA){
+    display.fillCircle(AButtonStartX, AButtonStartY, buttonRadius, WHITE);
+  }
+  else{
+    display.fillCircle(AButtonStartX, AButtonStartY, buttonRadius, BLACK);
+    display.drawCircle(AButtonStartX, AButtonStartY, buttonRadius, WHITE);
+  }
+
+  // draw B button
+  if(controllerData.butB){
+    display.fillCircle(BButtonStartX, BButtonStartY, buttonRadius, WHITE);
+  }
+  else{
+    display.fillCircle(BButtonStartX, BButtonStartY, buttonRadius, BLACK);
+    display.drawCircle(BButtonStartX, BButtonStartY, buttonRadius, WHITE);
+  }
+
+  // draw X button
+  if(controllerData.butX){
+    display.fillCircle(XButtonStartX, XButtonStartY, buttonRadius, WHITE);
+  }
+  else{
+    display.fillCircle(XButtonStartX, XButtonStartY, buttonRadius, BLACK);
+    display.drawCircle(XButtonStartX, XButtonStartY, buttonRadius, WHITE);
+  }
+
+  // draw Y button
+  if(controllerData.butY){
+    display.fillCircle(YButtonStartX, YButtonStartY, buttonRadius, WHITE);
+  }
+  else{
+    display.fillCircle(YButtonStartX, YButtonStartY, buttonRadius, BLACK);
+    display.drawCircle(YButtonStartX, YButtonStartY, buttonRadius, WHITE);
+  }
+
+}
+
+void drawControllerBorders(){
+  display.drawRoundRect(32, 34, 27, 27, 2, WHITE); // draw border around joystick
+}
+#pragma endregion drawing_functions
+
 void sendingModeOperations(){
 
   if(getButtonRisingEdge(switchButtonPressed, lastSwitchButtonState)){ // if just swapped to sending mode
     display.clearDisplay();  // display new team info
-    drawTeamName();
-    drawTurtleLogo();
+    drawDefaults();
+    drawControllerState();
     display.display();
   }
+  
+  drawControllerState();
+  display.display();
 
   // fire in the hole
   esp_err_t result = esp_now_send(address_list[currentAddressIndex], (uint8_t *) &controllerData, sizeof(controllerData));
@@ -299,13 +444,17 @@ void sendingModeOperations(){
 void debugModeOperations(){
   if(getButtonRisingEdge(switchButtonPressed, lastSwitchButtonState)){
     display.clearDisplay();
-    drawTeamName();
-    drawTurtleLogo();
-    display.setCursor(0, 48);
+    drawDefaults();
+    drawControllerState();
+    //print debug indicator
+    display.setTextSize(1);
+    display.setCursor(0, 56);
     display.printf("DEBUG");
-    display.display();
+    display.setTextSize(2);
   }
   bool update = false; // track if update happened
+  drawControllerState();
+  
 
   if(getButtonRisingEdge(controllerData.butA, lastControllerData.butA)){ // switch team when press A
     currentAddressIndex = (currentAddressIndex + 1) % address_count;
@@ -322,12 +471,16 @@ void debugModeOperations(){
 
   if(update){
     display.clearDisplay();
-    drawTeamName();
-    drawTurtleLogo();
-    display.setCursor(0, 48);
+    drawDefaults();
+    drawControllerState();
+    // print debug indicator
+    display.setTextSize(1);
+    display.setCursor(0, 56);
     display.printf("DEBUG");
-    display.display();
+    display.setTextSize(2);
   }
+
+  display.display();
 }
 
 bool getButtonRisingEdge(bool currentVal, bool oldVal){
