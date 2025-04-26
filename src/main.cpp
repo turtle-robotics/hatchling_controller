@@ -34,7 +34,7 @@ const int LOGO_START_Y = 32;
 // various constant data the controller uses
 const uint8_t broadcast_address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-const int address_count = 19;
+const int address_count = 21;
 
 const char* team_names[address_count] PROGMEM = {
   "the grippaz",  // 1
@@ -55,7 +55,9 @@ const char* team_names[address_count] PROGMEM = {
   "o4-mini", // 16
   "Nice Rack and Pinion", // 17
   "top dawg", // 18
-  "BROADCAST" // 19
+  "hjg poggiers", // 19
+  "Logan", // 20
+  "BROADCAST" // 21
 };
 
 const uint8_t address_list[address_count][6] PROGMEM = {
@@ -77,7 +79,9 @@ const uint8_t address_list[address_count][6] PROGMEM = {
   {0xc8, 0x2e, 0x18, 0xf0, 0x72, 0x6c}, // 16
   {0x08, 0xb6, 0x1f, 0xb8, 0x2b, 0xe8}, // 17
   {0xc8, 0x2e, 0x18, 0xf2, 0x34, 0xb4}, // 18
-  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}  // 19  
+  {0xc8, 0x2e, 0x18, 0xef, 0xfd, 0xd0}, // 19
+  {0x08, 0xb6, 0x1f, 0xb8, 0x61, 0xbc}, // 20
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}  // 21  
 };
 
 const int LOGO_WIDTH = 32;
@@ -199,7 +203,7 @@ void setup() {
   esp_now_register_send_cb(OnDataSent);
   
   // Register peers
-  for(int i = 0; i < address_count; ++i){
+  for(int i = 0; i < 20; ++i){
     memcpy(peerInfo[i].peer_addr, address_list[i], 6); // copy address from list to peerInfo address
     peerInfo[i].channel = 0;  
     peerInfo[i].encrypt = false;
