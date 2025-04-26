@@ -34,7 +34,7 @@ const int LOGO_START_Y = 32;
 // various constant data the controller uses
 const uint8_t broadcast_address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-const int address_count = 8;
+const int address_count = 15;
 
 const char* team_names[address_count] PROGMEM = {
   "the grippaz",  // 1
@@ -44,7 +44,14 @@ const char* team_names[address_count] PROGMEM = {
   "boooo", // 5
   "bunta", // 6
   "kirchoff", // 7
-  "Yggdrasil" // 8
+  "Yggdrasil", // 8
+  "ethan h", // 9
+  "Geodude", // 10
+  "BUG", // 11
+  "The Goblins", // 12
+  "TURTLE Quad Squad", // 13
+  "K-emi", // 14
+  "BROADCAST" // 15
 };
 
 const uint8_t address_list[address_count][6] PROGMEM = {
@@ -55,7 +62,14 @@ const uint8_t address_list[address_count][6] PROGMEM = {
   {0xc8, 0x2e, 0x18, 0xf2, 0x34, 0x68}, // 5
   {0x24, 0xdc, 0xc3, 0x44, 0xff, 0xd8}, // 6 
   {0xc8, 0x2e, 0x18, 0xef, 0xe5, 0x54}, // 7 
-  {0x08, 0xb6, 0x1f, 0xb8, 0xc8, 0xcc}, // 8  
+  {0x08, 0xb6, 0x1f, 0xb8, 0xc8, 0xcc}, // 8 
+  {0x08, 0xb6, 0x1f, 0xb9, 0x07, 0xac}, // 9 
+  {0x08, 0xb6, 0x1f, 0xb9, 0x06, 0x44}, // 10
+  {0xc8, 0x2e, 0x18, 0xef, 0xe5, 0x54}, // 11
+  {0xc8, 0x2e, 0x18, 0xf1, 0x8d, 0x04}, // 12
+  {0x24, 0xdc, 0xc3, 0x44, 0xf6, 0x30}, // 13
+  {0x08, 0xb6, 0x1f, 0xb7, 0xfe, 0x74}, // 14
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}  // 15  
 };
 
 const int LOGO_WIDTH = 32;
@@ -99,6 +113,7 @@ State& operator++(State& currentState){
   switch(currentState) {
     case SEND_MODE : return currentState = DEBUG_MODE;
     case DEBUG_MODE : return currentState = SEND_MODE;
+    default : return currentState;
   }
   assert(false); // this should be unreachable, but if by some "miracle" the code makes it here it'll throw an error
   return currentState; // this is just to prevent the compiler for yelling at you
