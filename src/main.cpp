@@ -51,7 +51,7 @@ const char* team_names[address_count] PROGMEM = {
   "The Goblins", // 12
   "TURTLE Quad Squad", // 13
   "K-emi", // 14
-  "Oddish" // 15
+  "Oddish", // 15
   "BROADCAST" // 16
 };
 
