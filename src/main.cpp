@@ -34,7 +34,7 @@ const int LOGO_START_Y = 32;
 // various constant data the controller uses
 const uint8_t broadcast_address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-const int address_count = 17;
+const int address_count = 18;
 
 const char* team_names[address_count] PROGMEM = {
   "the grippaz",  // 1
@@ -53,7 +53,8 @@ const char* team_names[address_count] PROGMEM = {
   "K-emi", // 14
   "Oddish", // 15
   "o4-mini", // 16
-  "BROADCAST" // 17
+  "Nice Rack and Pinion", // 17
+  "BROADCAST" // 18
 };
 
 const uint8_t address_list[address_count][6] PROGMEM = {
@@ -73,7 +74,8 @@ const uint8_t address_list[address_count][6] PROGMEM = {
   {0x08, 0xb6, 0x1f, 0xb7, 0xfe, 0x74}, // 14
   {0xc8, 0x2e, 0x18, 0xf2, 0x32, 0xb0},	// 15
   {0xc8, 0x2e, 0x18, 0xf0, 0x72, 0x6c}, // 16
-  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}  // 17  
+  {0x08, 0xb6, 0x1f, 0xb8, 0x2b, 0xe8}, // 17
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}  // 18  
 };
 
 const int LOGO_WIDTH = 32;
