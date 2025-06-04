@@ -492,8 +492,18 @@ void debugModeOperations(){
   drawControllerState();
   
 
-  if(getButtonRisingEdge(controllerData.butA, lastControllerData.butA)){ // switch team when press A
+   if(getButtonRisingEdge(controllerData.butA, lastControllerData.butA)){ // Go back a team when you press A
     currentAddressIndex = (currentAddressIndex + 1) % address_count;
+    update = true;
+  }
+
+  if(getButtonRisingEdge(controllerData.butB, lastControllerData.butB)){ // Go back a team when you press B
+    if(currentAddressIndex == 0){
+      currentAddressIndex = address_count - 1;
+    }
+    else{
+      currentAddressIndex = (currentAddressIndex - 1) % address_count;
+    }
     update = true;
   }
   
